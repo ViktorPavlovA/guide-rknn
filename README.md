@@ -266,10 +266,6 @@ if __name__ == "__main__":
 
 **FPS +- 18 640x640**
 
-![](1.mp4)
-
-[![](https://markdown-videos-api.jorgenkh.no/youtube/{1.mp4})](https://youtu.be/{1.mp4})
-
 <video width="640" height="480" controls>
   <source src="1.mp4" type="video/mp4">
 </video>
