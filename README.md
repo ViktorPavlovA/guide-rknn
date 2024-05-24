@@ -44,6 +44,10 @@ Download repsitory
 
 and run `test.py`
 
+## Сonversion onnx2rknn
+
+**Coming soon**
+
 ## Inference yolo-model
 
 Thanks [**Oleg-milantiev**](https://github.com/oleg-milantiev) 
