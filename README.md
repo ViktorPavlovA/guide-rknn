@@ -266,7 +266,5 @@ if __name__ == "__main__":
 
 **FPS +- 18 640x640**
 
-<video width="640" height="480" controls>
-  <source src="1.mp4" type="video/mp4">
-</video>
+![Example](https://github.com/ViktorPavlovA/guide-rknn/blob/main/1.gif)
 
