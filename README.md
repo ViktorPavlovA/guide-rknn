@@ -16,7 +16,7 @@ sudo apt-get install python3-setuptools
 
 **FOR 3588**
 
-[version rknn-toolkit] (https://github.com/ViktorPavlovA/rknn-toolkit2-fork-1.5.2/tree/v1.5.2/rknn_toolkit_lite2/packages)
+[version rknn-toolkit](https://github.com/ViktorPavlovA/rknn-toolkit2-fork-1.5.2/tree/v1.5.2/rknn_toolkit_lite2/packages)
 
 ```
 #choose own version
@@ -46,7 +46,7 @@ and run `test.py`
 
 ## Inference yolo-model
 
-Thanks [oleg-milantiev](https://github.com/oleg-milantiev) 
+Thanks [**Oleg-milantiev**](https://github.com/oleg-milantiev) 
 ```
 """
 Usage example 
@@ -262,5 +262,11 @@ if __name__ == "__main__":
 
 ```
 
+## Example of work 
 
+**FPS +- 18 640x640**
+
+<video width="640" height="480" controls>
+  <source src="1.mp4" type="video/mp4">
+</video>
 
