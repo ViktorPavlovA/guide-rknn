@@ -49,7 +49,6 @@ and run `test.py`
 ```
 """
 Usage example 
-python yolov8.py --model ./yolov8m.rknn --img bus.jpg
 """
 import cv2
 import numpy as np
