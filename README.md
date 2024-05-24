@@ -45,6 +45,8 @@ Download repsitory
 and run `test.py`
 
 ## Inference yolo-model
+
+Thanks [oleg-milantiev](https://github.com/oleg-milantiev) 
 ```
 """
 Usage example 
