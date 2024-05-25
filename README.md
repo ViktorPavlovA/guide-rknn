@@ -44,9 +44,51 @@ Download repsitory
 
 and run `test.py`
 
-## Сonversion onnx2rknn
+## Сonversion pt2rknn
 
-**Coming soon**
+### Step 1 .pt -> .onnx (modified for rockchip)
+
+install [ananconda](https://docs.anaconda.com/free/distro-or-miniconda/)
+
+`conda create -n rknn_env python=3.10`
+
+`conda activate rknn_env`
+
+install package (**depend of python3 version**) for PC with using `pip3 install`
+
+`https://github.com/ViktorPavlovA/rknn-toolkit2-fork-1.5.2/tree/v1.5.2/packages`
+
+`git clone https://github.com/airockchip/ultralytics_yolov8`
+
+`cd ultralytics_yolov8`
+
+in `requirement.txt` uncomment string with **onnx**
+
+`pip3 install -r requirement.txt`
+
+`python3 setup.py install`
+
+create file convert.py
+
+```
+from ultralytics import YOLO
+model = YOLO('best.pt') # exaple 
+path = model.export(format='rknn')
+```
+After all action we get **best.onnx**
+
+### Step 2 .onnx (modified for rockchip) -> .rknn
+
+`git clone https://github.com/airockchip/rknn_model_zoo.git`
+
+Copy best.onnx in:
+
+`rknn_model_zoo/examples/yolov8/python/ `
+
+`python3 convert.py best.onnx rk3588`
+
+if process will be successes you model will laying in the `rknn_model_zoo/examples/yolov8/model/`
+
 
 ## Inference yolo-model
 
