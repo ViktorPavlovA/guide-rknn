@@ -16,6 +16,8 @@ sudo apt-get install python3-setuptools
 
 **FOR 3588**
 
+**used v1.5.2 version!**
+
 [version rknn-toolkit](https://github.com/ViktorPavlovA/rknn-toolkit2-fork-1.5.2/tree/v1.5.2/rknn_toolkit_lite2/packages)
 
 ```
