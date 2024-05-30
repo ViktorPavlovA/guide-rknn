@@ -1,0 +1,1 @@
+python3 converter.py --pt pt/yolov8n_best.pt --rknn_pth /pt/yolov8_test.rknn --rockchip rk3588
