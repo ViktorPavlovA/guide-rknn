@@ -26,7 +26,7 @@
 
 ## Step 2
 
-`docker run -it --name builder -v /home/techtrans/docker_folder:/pt builder`
+`docker run -it --name builder -v  ~/docker_folder:/pt builder`
 
 `sh convert.sh`
 
