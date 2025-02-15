@@ -310,6 +310,12 @@ if __name__ == "__main__":
 
 ```
 
+
+# Add information about convert models
+
+Inside converter folder.
+
+
 ## Example of work 
 
 **FPS +- 18 640x640**
