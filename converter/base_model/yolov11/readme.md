@@ -3,18 +3,16 @@
 
 1. Source about yolo11rknn 
 
-wget https://ftrg.zbox.filez.com/v2/delivery/data/95f00b0fc900458ba134f8b180b3f7a1/examples/yolo11/yolo11n.onnx
+`wget https://ftrg.zbox.filez.com/v2/delivery/data/95f00b0fc900458ba134f8b180b3f7a1/examples/yolo11/yolo11n.onnx`
 
 2. Download from ultralytics
 
 ```
 from ultralytics import YOLO
 
-# Load the YOLO11 model
 model = YOLO("yolo11n.pt")
 
-# Export the model to ONNX format
-model.export(format="onnx", simplify=True)  # creates 'yolo11n.onnx'
+model.export(format="onnx")
 
 ```
 
