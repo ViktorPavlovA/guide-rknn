@@ -31,25 +31,23 @@ class Constructor:
                 break
         return conv_output_name
     @classmethod
-    def __add_sigmoid(cls,model:onnx.ModelProto, node_name:str) -> onnx.ModelProto:
+    def __add_sigmoid(cls,model:onnx.ModelProto, node_name:str, node_output:str) -> onnx.ModelProto:
         conv_output_name = cls.find_output(model,node_name)
-
-        sigmoid_output_name = "onnx::ReduceSum_365"
         sigmoid_node = helper.make_node(
-            op_type="Sigmoid",  # Тип операции
-            inputs=[conv_output_name],  # Входной тензор (выход Conv)
-            outputs=[sigmoid_output_name]  # Выходной тензор
+            op_type="Sigmoid", 
+            inputs=[conv_output_name], 
+            outputs=[node_output]
         )
 
-        return sigmoid_node, sigmoid_output_name
+        return sigmoid_node, node_output
     @classmethod
-    def ___add_reduce_sum(cls,node_name:str) -> onnx.ModelProto:
+    def ___add_reduce_sum(cls,node_name:str,reduce_sum_name:str) -> onnx.ModelProto:
         reduce_sum_output_name = "/model.22/ReduceSum_2_output_0"
         reduce_sum_node = helper.make_node(
             op_type="ReduceSum",  # Тип операции
             inputs=[node_name],  # Входной тензор (выход Sigmoid)
             outputs=[reduce_sum_output_name],  # Выходной тензор
-            name="ReduceSum_365",  # Имя узла
+            name=reduce_sum_name,  # Имя узла
             axes=[1],  # Ось для редукции
             keepdims=1  # Сохранение размерности
         )
@@ -69,37 +67,57 @@ class Constructor:
         return clip_node,clip_output_name 
     
     @classmethod
-    def create_layers(cls,model:onnx.ModelProto,start_node:str) -> onnx.ModelProto:
+    def create_layers(cls,model:onnx.ModelProto,group_node:str) -> onnx.ModelProto:
         """
         add model sigmoid, reduce_sum, clip
         """
-        sigmoid_node,sigmoid_output_name = cls.__add_sigmoid(model,start_node)
-        reduce_sum_node,reduce_sum_output_name = cls.___add_reduce_sum(sigmoid_output_name)
-        clip_node,clip_output_name = cls.__add_clip(reduce_sum_output_name)
 
-        model.graph.node.extend([sigmoid_node, reduce_sum_node, clip_node])
+        for id, nodes in enumerate(group_node):
+            
+            if (id+1)%2 == 0:
+                desired_output_name = nodes[0]
+                # Создайте новую информацию о выходном тензоре
+                new_output = helper.make_tensor_value_info(
+                    name=desired_output_name,
+                    elem_type=TensorProto.FLOAT,  # Тип данных (замените, если нужен другой тип)
+                    shape=[1, 64, 20, 20]  # Форма (если известна, укажите её явно)
+                )
 
-        # Создание нового выходного тензора с именем onnx::ReduceSum_346
-        new_output_name = "onnx::ReduceSum_346"
-        new_output = helper.make_tensor_value_info(
-            name=new_output_name,  # Имя выходного тензора
-            elem_type=TensorProto.FLOAT,  # Тип данных (float32)
-            shape=None  # Размерность можно определить позже или указать явно
-        )
-        model.graph.output.append(new_output)
+                # Добавьте новый выходной тензор в граф
+                model.graph.output.append(new_output)
 
-        identity_node = helper.make_node(
-            op_type="Identity",  # Операция Identity (просто передача данных)
-            inputs=[sigmoid_output_name],  # Входной тензор (выход Conv)
-            outputs=[new_output_name]  # Выходной тензор (новый выход)
-        )
-
-        # Добавление узла Identity в граф модели
-        model.graph.node.append(identity_node)
+                # Убедитесь, что указанный тензор уже существует в графе как промежуточный тензор
+                # Если нет, может потребоваться его добавить
+                if not any(tensor.name == desired_output_name for tensor in model.graph.value_info):
+                    value_info = helper.make_tensor_value_info(
+                        name=nodes[0],
+                        elem_type=TensorProto.FLOAT,
+                        shape=[1, 64, 20, 20]
+                    )
+                    model.graph.value_info.append(value_info)
 
 
+                # identity_node = helper.make_node(
+                #     op_type="Identity", 
+                #     inputs=[nodes[0]],
+                #     outputs=[new_output_name]  
+                # )
+                # model.graph.node.append(identity_node)
 
-        return model, clip_output_name
+            else:
+                pass
+                # sigmoid_node,sigmoid_output_name = cls.__add_sigmoid(model,group_node,nodes[1])
+                # # reduce_sum_node,reduce_sum_output_name = cls.___add_reduce_sum(sigmoid_output_name)
+                # # clip_node,clip_output_name = cls.__add_clip(reduce_sum_output_name)
+
+                # # model.graph.node.extend([sigmoid_node, reduce_sum_node, clip_node])
+                
+                # model.graph.node.extend([sigmoid_node])
+
+
+
+
+        return model
 
 class Deleter_nodes:
     nodes_to_delete = ["/model.22/Concat_5","/model.22/Sigmoid",
@@ -113,7 +131,13 @@ class Deleter_nodes:
                        ]
     output_tensor_delete = "output0"
 
-    start_node_for_add = "/model.22/cv3.2/cv3.2.2/Conv"
+    # name nodes: [default layer name, sigmoid name, reduce_sum_name, reduce_sum_name_output, clip_name,output_name],  
+    # brach near: [default layer name,output_name] 
+
+    start_nodes_for_add = [["/model.22/cv3.2/cv3.2.2/Conv","/model.22/Sigmoid_2","/model.22/ReduceSum_2","onnx::ReduceSum_365","/model.22/Clip_2","369"], ["/model.22/cv2.2/cv2.2.2/Conv_output_0","357"],
+                    
+                    ]#check by name inside https://netron.app/
+    # start_node_for_add = "/model.22/cv3.2/cv3.2.2/Conv"
 
     def save(model) -> None:
         Saver.save(model)
@@ -176,7 +200,7 @@ class Deleter_nodes:
 
     @classmethod
     def add_nodes(cls,model:onnx.ModelProto):
-        Constructor.create_layers(model,cls.start_node_for_add)
+        model = Constructor.create_layers(model,cls.start_nodes_for_add)
         return model
 
     @classmethod
