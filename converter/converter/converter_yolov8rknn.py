@@ -20,14 +20,11 @@ class Saver:
         print(f"Model saved to {path_to_save}")
 
 class Constructor:
-
-
-
     def find_output(model:onnx.ModelProto,conv_node_name:str):
         conv_output_name = None
         for node in model.graph.node:
             if node.name == conv_node_name:
-                conv_output_name = node.output[0]  # Берём первый выход узла Conv
+                conv_output_name = node.output[0]
                 break
         return conv_output_name
     @classmethod
@@ -41,30 +38,54 @@ class Constructor:
 
         return sigmoid_node, node_output
     @classmethod
-    def ___add_reduce_sum(cls,node_name:str,reduce_sum_name:str) -> onnx.ModelProto:
-        reduce_sum_output_name = "/model.22/ReduceSum_2_output_0"
+    def ___add_reduce_sum(cls,node_name:str,reduce_sum_output_name:str) -> onnx.ModelProto:
+        
         reduce_sum_node = helper.make_node(
-            op_type="ReduceSum",  # Тип операции
-            inputs=[node_name],  # Входной тензор (выход Sigmoid)
-            outputs=[reduce_sum_output_name],  # Выходной тензор
-            name=reduce_sum_name,  # Имя узла
-            axes=[1],  # Ось для редукции
-            keepdims=1  # Сохранение размерности
+            op_type="ReduceSum",  
+            inputs=[node_name],  
+            outputs=[reduce_sum_output_name], 
+            name="ReduceSum",  
+            axes=[1],
+            keepdims=1  
         )
         return reduce_sum_node,reduce_sum_output_name
     @classmethod
-    def __add_clip(cls,node_name:str) -> onnx.ModelProto:
-        clip_output_name = "clip_output"
+    def __add_clip(cls,node_name:str, clip_output_name :str) -> onnx.ModelProto:
         clip_node = helper.make_node(
-            op_type="Clip",  # Тип операции
-            inputs=[node_name],  # Входной тензор (выход ReduceSum)
-            outputs=[clip_output_name],  # Выходной тензор
-            name="Clip_365",  # Имя узла
-            min=0.0,  # Минимальное значение
-            max=1.0   # Максимальное значение
+            op_type="Clip",  
+            inputs=[node_name],  
+            outputs=[clip_output_name],  
+            name="Clip_365",
+            min=0.0,
+            max=1.0   
         )
 
-        return clip_node,clip_output_name 
+        return clip_node,clip_output_name
+    
+    @classmethod
+    def __add_output_node(cls,model:onnx.ModelProto, node_dict:dict) -> onnx.ModelProto:
+        """
+        The method to add output to node
+        """
+        output_node = node_dict["name"]
+        output_shape = node_dict["shape"]
+        new_output = helper.make_tensor_value_info(
+            name = output_node,
+            elem_type=TensorProto.FLOAT,
+            shape=output_shape
+        )
+
+        model.graph.output.append(new_output)
+
+        if not any(tensor.name == output_node for tensor in model.graph.value_info):
+            value_info = helper.make_tensor_value_info(
+                name=output_node,
+                elem_type=TensorProto.FLOAT,
+                shape=output_shape
+            )
+            model.graph.value_info.append(value_info)
+        
+        return model
     
     @classmethod
     def create_layers(cls,model:onnx.ModelProto,group_node:str) -> onnx.ModelProto:
@@ -75,47 +96,22 @@ class Constructor:
         for id, nodes in enumerate(group_node):
             
             if (id+1)%2 == 0:
-                desired_output_name = nodes[0]
-                # Создайте новую информацию о выходном тензоре
-                new_output = helper.make_tensor_value_info(
-                    name=desired_output_name,
-                    elem_type=TensorProto.FLOAT,  # Тип данных (замените, если нужен другой тип)
-                    shape=[1, 64, 20, 20]  # Форма (если известна, укажите её явно)
-                )
-
-                # Добавьте новый выходной тензор в граф
-                model.graph.output.append(new_output)
-
-                # Убедитесь, что указанный тензор уже существует в графе как промежуточный тензор
-                # Если нет, может потребоваться его добавить
-                if not any(tensor.name == desired_output_name for tensor in model.graph.value_info):
-                    value_info = helper.make_tensor_value_info(
-                        name=nodes[0],
-                        elem_type=TensorProto.FLOAT,
-                        shape=[1, 64, 20, 20]
-                    )
-                    model.graph.value_info.append(value_info)
-
-
-                # identity_node = helper.make_node(
-                #     op_type="Identity", 
-                #     inputs=[nodes[0]],
-                #     outputs=[new_output_name]  
-                # )
-                # model.graph.node.append(identity_node)
-
+                model = cls.__add_output_node(model, nodes[0])
             else:
-                pass
-                # sigmoid_node,sigmoid_output_name = cls.__add_sigmoid(model,group_node,nodes[1])
-                # # reduce_sum_node,reduce_sum_output_name = cls.___add_reduce_sum(sigmoid_output_name)
-                # # clip_node,clip_output_name = cls.__add_clip(reduce_sum_output_name)
-
-                # # model.graph.node.extend([sigmoid_node, reduce_sum_node, clip_node])
                 
-                # model.graph.node.extend([sigmoid_node])
+                sigmoid_node,sigmoid_output_name = cls.__add_sigmoid(model,nodes[0],nodes[1])
+                reduce_sum_node,reduce_sum_output_name = cls.___add_reduce_sum(sigmoid_output_name,nodes[2])
+                clip_node,clip_output_name = cls.__add_clip(reduce_sum_output_name, nodes[-3])
 
+                model.graph.node.extend([sigmoid_node, reduce_sum_node, clip_node])
+                dict_sigmoid_output = nodes[-2] 
+                dict_sigmoid_output["name"] = nodes[1]
+                model = cls.__add_output_node(model, dict_sigmoid_output)
 
-
+                dict_clip_output = nodes[-1]
+                dict_clip_output["name"] = clip_output_name
+                model = cls.__add_output_node(model, dict_clip_output)
+                
 
         return model
 
@@ -134,9 +130,12 @@ class Deleter_nodes:
     # name nodes: [default layer name, sigmoid name, reduce_sum_name, reduce_sum_name_output, clip_name,output_name],  
     # brach near: [default layer name,output_name] 
 
-    start_nodes_for_add = [["/model.22/cv3.2/cv3.2.2/Conv","/model.22/Sigmoid_2","/model.22/ReduceSum_2","onnx::ReduceSum_365","/model.22/Clip_2","369"], ["/model.22/cv2.2/cv2.2.2/Conv_output_0","357"],
+    start_nodes_for_add = [["/model.22/cv3.2/cv3.2.2/Conv","onnx::ReduceSum_365","/model.22/ReduceSum_2_output_0","onnx::ReduceSum_365","/model.22/Clip_2","369",
+                            {"shape":[1, 80, 20, 20]}, {"shape":[1,1,20,20]}], 
+                           [{"name":"/model.22/cv2.2/cv2.2.2/Conv_output_0",
+                             "shape":[1,64,20,20]}]]
                     
-                    ]#check by name inside https://netron.app/
+    #check by name inside https://netron.app/
     # start_node_for_add = "/model.22/cv3.2/cv3.2.2/Conv"
 
     def save(model) -> None:
