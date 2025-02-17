@@ -127,8 +127,7 @@ class Deleter_nodes:
                        ]
     output_tensor_delete = "output0"
 
-    # name nodes: [default layer name, sigmoid name, reduce_sum_name, reduce_sum_name_output, clip_name,output_name],  
-    # brach near: [default layer name,output_name] 
+
 
     start_nodes_for_add = [["/model.22/cv3.2/cv3.2.2/Conv","onnx::ReduceSum_365","/model.22/ReduceSum_2_output_0","onnx::ReduceSum_365","/model.22/Clip_2","369",
                             {"shape":[1, 80, 20, 20]}, {"shape":[1,1,20,20]}], 
@@ -139,7 +138,15 @@ class Deleter_nodes:
                               {"shape":[1, 80, 40, 40]}, {"shape":[1,1,40,40]}
                              ],
                              [{"name":"/model.22/cv2.1/cv2.1.2/Conv_output_0",
-                              "shape":[1,64,20,20]}]
+                              "shape":[1,64,40,40]}],
+                             [
+                               "/model.22/cv3.0/cv3.0.2/Conv","onnx::ReduceSum_326","/model.22/ReduceSum_output_0","onnx::ReduceSum_326","/model.22/Clip","331",
+                               {"shape":[1, 80, 80, 80]}, {"shape":[1,1,80,80]}
+                             ],
+                             [
+                                {"name":"/model.22/cv2.0/cv2.0.2/Conv_output_0",
+                              "shape":[1,64,80,80]}
+                             ]
                           ]
                     
     #check by name inside https://netron.app/
@@ -182,27 +189,6 @@ class Deleter_nodes:
             model.graph.value_info.remove(vi)
 
         return model
-    
-    # def make_output(model:onnx.ModelProto) -> onnx.ModelProto:
-    #     #find output tensor
-    #     new_output_name = None
-    #     for node in reversed(model.graph.node):
-    #         if node.output:
-    #             new_output_name = node.output[0]
-    #             break
-
-    #     if new_output_name is None:
-    #         raise ValueError("Не удалось найти новый выходной тензор после удаления узлов.")
-
-    #     # clear old output
-    #     model.graph.output[:] = [] 
-
-    #     # make new output
-    #     new_output = onnx.helper.ValueInfoProto()
-    #     new_output.name = new_output_name
-    #     model.graph.output.extend([new_output])
-
-    #     return model
 
     @classmethod
     def add_nodes(cls,model:onnx.ModelProto):
