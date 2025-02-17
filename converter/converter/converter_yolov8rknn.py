@@ -133,7 +133,14 @@ class Deleter_nodes:
     start_nodes_for_add = [["/model.22/cv3.2/cv3.2.2/Conv","onnx::ReduceSum_365","/model.22/ReduceSum_2_output_0","onnx::ReduceSum_365","/model.22/Clip_2","369",
                             {"shape":[1, 80, 20, 20]}, {"shape":[1,1,20,20]}], 
                            [{"name":"/model.22/cv2.2/cv2.2.2/Conv_output_0",
-                             "shape":[1,64,20,20]}]]
+                             "shape":[1,64,20,20]}],
+                             [
+                              "/model.22/cv3.1/cv3.1.2/Conv","onnx::ReduceSum_346","/model.22/ReduceSum_1_output_0","onnx::ReduceSum_346","/model.22/Clip_1","350",
+                              {"shape":[1, 80, 40, 40]}, {"shape":[1,1,40,40]}
+                             ],
+                             [{"name":"/model.22/cv2.1/cv2.1.2/Conv_output_0",
+                              "shape":[1,64,20,20]}]
+                          ]
                     
     #check by name inside https://netron.app/
     # start_node_for_add = "/model.22/cv3.2/cv3.2.2/Conv"
