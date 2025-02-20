@@ -75,7 +75,7 @@ create file convert.py
 ```
 from ultralytics import YOLO
 model = YOLO('best.pt') # exaple 
-path = model.export(format='rknn')
+path = model.export(format='onnx')
 ```
 After all action we get **best.onnx**
 
